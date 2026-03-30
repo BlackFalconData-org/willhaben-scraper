@@ -66,22 +66,32 @@ Monitor listings, track trends, and analyze market dynamics with structured, ded
 
 ## FAQ
 
-<!-- WRITE: 4-6 Q&A pairs relevant to this product -->
-
 **Is it legal to scrape willhaben.at?**
 Web scraping of publicly available data is generally legal. This actor only accesses publicly visible information. Always check the target site's terms of service for your specific use case.
 
+**Which sections are supported?**
+All four main sections: Marktplatz (classifieds), Immobilien (real estate), Autos (cars), and Jobs. Each section has its own set of output fields.
+
+**Can I use a search URL directly?**
+Yes — paste any willhaben.at search URL into the `searchUrl` field and all filters, keywords, and section type are extracted automatically. Manual overrides still apply.
+
 **How does incremental mode work?**
-Each listing gets a content hash. On subsequent runs, only new or changed listings are emitted — saving time, compute, and storage.
+Each listing gets a content hash based on title, price, description, and other key fields. On subsequent runs, only new or changed listings are emitted — unchanged ones are silently skipped. No extra charge for change tracking.
+
+**How do I scrape jobs in a specific city?**
+Set `section` to `jobs` and use `jobRegion` (e.g. `wien`) or `jobLocation` for city-level filtering. Combine with a keyword for more targeted results.
+
+**What does detail enrichment add for jobs?**
+With `includeDetails: true`, jobs gain full description text, contact name and email, remote work flag, language skill requirements, and apply URL.
 
 ---
 
 ## Known limitations
 
-<!-- WRITE: 4-6 honest limitations -->
-
-- <!-- WRITE: limitation 1 -->
-- <!-- WRITE: limitation 2 -->
+- Willhaben's attribute-bag API (Marktplatz, Immobilien, Autos) rate-limits at sustained high concurrency. Detail enrichment runs at a conservative 5 concurrent requests to avoid 429 errors.
+- Jobs detail pages do not always include contact email — this depends on the employer's settings.
+- Immobilien contact email is rarely exposed as a structured field; it is only extracted when present in the CONTACT/URL attribute.
+- Real-time price changes may take a few minutes to reflect in search results due to willhaben's own caching.
 
 ---
 
