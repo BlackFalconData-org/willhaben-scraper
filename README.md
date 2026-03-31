@@ -1,28 +1,28 @@
-# Willhaben.at Scraper
+# Willhaben Scraper
 
-Extract structured data from [willhaben.at](https://willhaben.at) — willhaben.at — Austria's largest classifieds platform. All four sections including jobs, paste any search URL with filters, and incremental change tracking.
+Extract structured job listings from [willhaben.at](https://willhaben.at) — Austria's largest job portal. Salary data, employer contact info, and 7 search filters.
 
-**[Willhaben.at Scraper on Apify →](https://apify.com/blackfalcondata/willhaben-all-scraper)**
+**[Willhaben Scraper on Apify →](https://apify.com/blackfalcondata/willhaben-scraper)**
 
 ---
 
 ## Key features
 
-**Search with filters** — Search by keyword and location. Filter by section, immobilien sub-type, and more.
+**7 search filters** — Filter by region (Bundesland), professional field, employment type, position level, company type, and posting recency. Combine with keyword search.
 
-**Detail enrichment** — Fetch full job descriptions, structured metadata for each listing.
+**Detail enrichment** — Fetch full job descriptions, contact name and email, language skill requirements, remote work flag, and company profile per listing.
 
-**Incremental mode** — Only get new or changed listings since your last run. Content hash per listing — no duplicates, no re-processing.
+**Incremental mode** — Only get new or changed jobs since your last run. Content hash per listing — no duplicates, no re-processing.
 
 ---
 
 ## Use cases
 
-**Data pipeline automation**
-Integrate with your ETL pipeline to collect structured listings from willhaben.at on a schedule. Export to CSV, JSON, or directly to your database. Use compact mode to control output size.
+**Job market monitoring**
+Track job postings in Austria by region and sector. Export structured data to CSV, JSON, or your own database for analysis.
 
-**Market research**
-Monitor listings, track trends, and analyze market dynamics with structured, deduplicated data from willhaben.at.
+**Recruitment pipeline**
+Collect fresh postings daily with contact info enriched. Use incremental mode to only process new arrivals.
 
 ---
 
@@ -30,8 +30,9 @@ Monitor listings, track trends, and analyze market dynamics with structured, ded
 
 ```json
 {
-  "query": "fahrrad",
-  "maxResults": 50,
+  "query": "Software Engineer",
+  "location": "Wien",
+  "maxResults": 25,
   "includeDetails": true
 }
 ```
@@ -41,65 +42,53 @@ Monitor listings, track trends, and analyze market dynamics with structured, ded
 ## Input parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `searchUrl` | string | — | Paste any willhaben.at search URL — section, sub-type, keyword and all filters are extracted automatically. Other fields below override individual values if needed. |
-| `section` | enum | `"marktplatz"` | Which part of willhaben.at to scrape. |
-| `immoSubType` | enum | `"mietwohnungen"` | Category within the Immobilien section. Only used when section = immobilien. |
-| `query` | string | — | Search keyword (optional). Leave empty to get all listings in the section. |
-| `priceMin` | integer | — | Minimum listing price in EUR. Not applicable for Jobs. |
-| `priceMax` | integer | — | Maximum listing price in EUR. Not applicable for Jobs. |
-| `jobLocation` | string | — | City or location filter for jobs (e.g. 'Wien'). Only used when section = jobs. |
-| `jobRegion` | string | — | Federal state or region filter (e.g. 'wien'). Only used when section = jobs. |
-| `jobOperationArea` | string | — | Job operation/industry area filter. Only used when section = jobs. |
-| `jobEmploymentMode` | string | — | Employment type filter (e.g. 'vollzeit', 'teilzeit'). Only used when section = jobs. |
-| `jobPosition` | string | — | Position/seniority filter. Only used when section = jobs. |
-| `jobCompanyType` | string | — | Type of employer (e.g. 'private', 'public'). Only used when section = jobs. |
-| `jobTimeLimit` | string | — | Contract duration filter (e.g. 'unbefristet'). Only used when section = jobs. |
-| `maxResults` | integer | `50` | Maximum number of listings to return. 0 = unlimited. |
-| `includeDetails` | boolean | `true` | Fetch the full listing detail page for each result. Adds description, contact info, and richer field data. Slower but more complete. |
-| `descriptionMaxLength` | integer | `0` | Truncate description text to N characters. 0 = no truncation. |
-| `compact` | boolean | `false` | Return core fields only (listingId, title, price, location, section-key fields). Smaller payload for AI-agent and MCP workflows. |
-| `incrementalMode` | boolean | `false` | Only emit new or changed listings. Requires stateKey. Unchanged listings are skipped. Change tracking is free — no extra charge per run. |
-| `stateKey` | string | — | Stable identifier for this tracked search (e.g. 'vw-golf-wien'). Required when incrementalMode is true. Different searches must use different keys. |
+|---|---|---|---|
+| `query` | string | — | Job search keywords. Leave empty to browse all jobs. |
+| `location` | string | — | City or district name (e.g. "Wien"). |
+| `region` | enum | — | Austrian federal state (Wien, Steiermark, Tirol…). |
+| `operationArea` | enum | — | Professional field (IT/EDV, Marketing, Handwerk…). |
+| `employmentMode` | enum | — | Employment type (Vollzeit, Teilzeit, Freiberuflich, Geringfügig). |
+| `position` | enum | — | Position level (Mitarbeiter:in, Leitung, Praktikum…). |
+| `companyType` | enum | — | Staffing agency or direct employer. |
+| `timeLimit` | enum | — | Posted within last 24h, 3 days, or week. |
+| `maxResults` | integer | `25` | Maximum results (0 = unlimited). |
+| `includeDetails` | boolean | `true` | Fetch full job details: contact info, description, language skills, remote. |
+| `descriptionMaxLength` | integer | `0` | Truncate description to N chars. 0 = no truncation. |
+| `compact` | boolean | `false` | Core fields only — for AI-agent and MCP workflows. |
+| `incrementalMode` | boolean | `false` | Only emit new or changed jobs since last run. Requires stateKey. |
+| `stateKey` | string | — | Stable key for tracked search (e.g. "software-wien"). Required for incremental mode. |
 
 ---
 
 ## FAQ
 
 **Is it legal to scrape willhaben.at?**
-Web scraping of publicly available data is generally legal. This actor only accesses publicly visible information. Always check the target site's terms of service for your specific use case.
-
-**Which sections are supported?**
-All four main sections: Marktplatz (classifieds), Immobilien (real estate), Autos (cars), and Jobs. Each section has its own set of output fields.
-
-**Can I use a search URL directly?**
-Yes — paste any willhaben.at search URL into the `searchUrl` field and all filters, keywords, and section type are extracted automatically. Manual overrides still apply.
+Web scraping of publicly available data is generally legal. This actor only accesses publicly visible job listings. Always check the target site's terms of service for your specific use case.
 
 **How does incremental mode work?**
-Each listing gets a content hash based on title, price, description, and other key fields. On subsequent runs, only new or changed listings are emitted — unchanged ones are silently skipped. No extra charge for change tracking.
+Each job gets a content hash. On subsequent runs, only new or changed jobs are emitted — unchanged listings are silently skipped. No extra charge for change tracking.
 
-**How do I scrape jobs in a specific city?**
-Set `section` to `jobs` and use `jobRegion` (e.g. `wien`) or `jobLocation` for city-level filtering. Combine with a keyword for more targeted results.
+**Does it return contact details?**
+Yes, with `includeDetails: true`. Contact name and email are returned when the employer has made them available on the listing page.
 
-**What does detail enrichment add for jobs?**
-With `includeDetails: true`, jobs gain full description text, contact name and email, remote work flag, language skill requirements, and apply URL.
+**What is compact mode?**
+Returns core fields only (title, company, salary, location, URL). Smaller payload for AI-agent and MCP workflows where full descriptions are not needed.
 
 ---
 
 ## Known limitations
 
-- Willhaben's attribute-bag API (Marktplatz, Immobilien, Autos) rate-limits at sustained high concurrency. Detail enrichment runs at a conservative 5 concurrent requests to avoid 429 errors.
-- Jobs detail pages do not always include contact email — this depends on the employer's settings.
-- Immobilien contact email is rarely exposed as a structured field; it is only extracted when present in the CONTACT/URL attribute.
-- Real-time price changes may take a few minutes to reflect in search results due to willhaben's own caching.
+- Contact email is only available when the employer has explicitly published it on the listing page — not all postings include it.
+- Salary data is shown when the employer discloses it; many Austrian job postings omit salary.
+- Pagination is capped at willhaben's maximum of 90 results per page; very large result sets are fetched in parallel pages.
 
 ---
 
 ## Related products by Black Falcon Data
 
+- [Willhaben.at Scraper](https://github.com/BlackFalconData-org/willhaben-all-scraper) — All four sections: classifieds, real estate, cars and jobs in one actor
+- [Arbeitsagentur Jobs Feed](https://github.com/BlackFalconData-org/arbeitsagentur-jobs-feed) — Germany's official employment portal
 - [StepStone Scraper](https://github.com/BlackFalconData-org/stepstone-scraper) — Job listings from 18 European portals
-- [Indeed Job Scraper](https://github.com/BlackFalconData-org/indeed-job-scraper) — Indeed job listings with salary data
-- [Glassdoor Job Scraper](https://github.com/BlackFalconData-org/glassdoor-job-scraper) — Glassdoor listings with company ratings
 
 ---
 
